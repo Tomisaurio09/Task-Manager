@@ -1,3 +1,7 @@
 {
-
+    "Comprar": {
+        "descripcion": "Comprar pan",
+        "estado": "Completa",
+        "fecha limite": "05/04/2006"
+    }
 }

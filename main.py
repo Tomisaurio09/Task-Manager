@@ -1,18 +1,12 @@
 #Crear una aplicación de consola en Python que permita a los usuarios gestionar sus tareas diarias
-#añadir tareas con una descripcion y una fecha limite
-#listar tareas (tareas pendientes, descripciones y fechas limites)
-#marcar tarea como completada
-#eliminar una tarea
-#usar JSON
+
 import json
 from datetime import datetime
 
-# Abre el archivo JSON en modo lectura
-with open('tareas.json', 'r') as archivo:
-    # Carga el contenido del archivo en un diccionario de Python
-    tareas = json.load(archivo)
+archivo_tareas = "tareas.json"
 
-# Ahora `tareas` contiene los datos del archivo JSON
+with open('tareas.json', 'r') as archivo:
+    tareas = json.load(archivo)
 
 def add_task(tareas):
     task_name = input("Decime el nombre de la tarea que queres agregar: ").capitalize()
@@ -35,7 +29,7 @@ def add_task(tareas):
 
     tareas[task_name] = {
         "descripcion": task_description,
-        "completada": task_state,
+        "estado": task_state,
         "fecha limite": task_date
     }
 
@@ -46,5 +40,36 @@ agregar = add_task(tareas)
 with open("tareas.json","w") as archivo:
     json.dump(agregar,archivo,indent=4)
 
+def show_incomplete_task_in_archive(archivo_path):
+    with open(archivo_path,"r") as archivo:
+        tareas = json.load(archivo)
+    
+    for diccionario in tareas:
+        if tareas[diccionario].get("estado") == "Pendiente":
+            print(tareas[diccionario])
+    return
 
+def change_task_status(tareas):
+    task_name_to_change_status = input("Decime el nombre de la tarea a la que le queres cambiar el estado de pendiente a completada: ").capitalize()
 
+    if task_name_to_change_status in tareas:
+        tareas[task_name_to_change_status]["estado"] = "Completa"
+    
+    return tareas
+
+change_status = change_task_status(tareas)
+
+with open("tareas.json","w") as archivo:
+    json.dump(change_status,archivo,indent=4)
+
+def delete_task_from_archive(tareas):
+    task_to_delete = input("Decime el nombre de la tarea que queres eliminar: ").capitalize()
+
+    if task_to_delete in tareas:
+        del tareas[task_to_delete]
+    return tareas
+
+#delete_task = delete_task_from_archive(tareas)
+
+#with open("tareas.json","w") as archivo:
+    json.dump(delete_task,archivo,indent=4)
