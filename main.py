@@ -35,11 +35,6 @@ def add_task(tareas):
 
     return tareas
 
-agregar = add_task(tareas)
-
-with open("tareas.json","w") as archivo:
-    json.dump(agregar,archivo,indent=4)
-
 def show_incomplete_task_in_archive(archivo_path):
     with open(archivo_path,"r") as archivo:
         tareas = json.load(archivo)
@@ -57,10 +52,6 @@ def change_task_status(tareas):
     
     return tareas
 
-change_status = change_task_status(tareas)
-
-with open("tareas.json","w") as archivo:
-    json.dump(change_status,archivo,indent=4)
 
 def delete_task_from_archive(tareas):
     task_to_delete = input("Decime el nombre de la tarea que queres eliminar: ").capitalize()
@@ -69,7 +60,51 @@ def delete_task_from_archive(tareas):
         del tareas[task_to_delete]
     return tareas
 
-#delete_task = delete_task_from_archive(tareas)
 
-#with open("tareas.json","w") as archivo:
-    json.dump(delete_task,archivo,indent=4)
+
+def introduction():
+    print("Hello User!\n")
+    print("This is a simple Task Manager.")
+    print("You can add a task, delete them, you can check their status and you can change their status.")
+
+def main():
+    introduction()
+
+    print("\nWhat do you want to do?")
+    print("""
+        1.Add a Task
+        2.Delete a Task
+        3.Check the incomplete tasks
+        4.Change the task status
+        5.Exit the program
+            """)
+    
+    user_election = None
+    while user_election not in ["1","2","3","4","5"]:
+        user_election = input("Elegí una opcion de las disponibles: ")
+        if user_election not in ["1","2","3","4","5"]:
+            print("Por favor, elegi una opcion valida")
+    
+    if user_election == "1":
+        agregar = add_task(tareas)
+        with open("tareas.json","w") as archivo:
+            json.dump(agregar,archivo,indent=4)
+
+    elif user_election == "2":
+        delete_task = delete_task_from_archive(tareas)
+        with open("tareas.json","w") as archivo:
+            json.dump(delete_task,archivo,indent=4)
+
+    elif user_election == "3":
+        show_incomplete_task_in_archive(archivo_tareas)
+
+    elif user_election == "4":
+        change_status = change_task_status(tareas)
+        with open("tareas.json","w") as archivo:
+            json.dump(change_status,archivo,indent=4)
+
+    elif user_election == "5":
+        print("Thank you for using my Task Manager")
+        exit()
+
+main()
