@@ -1,0 +1,7 @@
+{
+    "Go to the super": {
+        "description": "Buy milk and food for the cats",
+        "state": "Pending",
+        "deadline": "24/01/2025"
+    }
+}

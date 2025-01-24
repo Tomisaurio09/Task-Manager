@@ -1,109 +1,163 @@
-#Crear una aplicación de consola en Python que permita a los usuarios gestionar sus tareas diarias
+# Create a console application in Python that allows users to manage their daily tasks
 
 import json
 from datetime import datetime
 
-archivo_tareas = "tareas.json"
+tasks_file = "tasks.json"
+# Sequence of try and except in case of any error with the JSON file
+try:
+    with open(tasks_file, 'r') as file:
+        tasks = json.load(file)
+except FileNotFoundError:
+    print(f"Error: The file '{tasks_file}' is not found.")
+    tasks = {}
+except json.JSONDecodeError:
+    print(f"Error: The file '{tasks_file}' contains invalid JSON data.")
+    tasks = {}
+except Exception as e:
+    print(f"An unexpected error occurred while reading the file: {e}")
+    tasks = {}
 
-with open('tareas.json', 'r') as archivo:
-    tareas = json.load(archivo)
+# Essential function to validate all types of inputs
+def validate_input(message, options):
+    validated_task = None
+    while validated_task not in options:
+        validated_task = input(message).capitalize()
+        if validated_task not in options:
+            print("Invalid input. Please, enter one of the available options.")
+    return validated_task
 
-def add_task(tareas):
-    task_name = input("Decime el nombre de la tarea que queres agregar: ").capitalize()
-    task_description = input("Decime una descripcion de la tarea que queres agregar: ").capitalize()
-    task_state = None
+# Allows adding tasks to the JSON file
+def add_task(tasks):
+    task_name = input("Tell me the name of the task you want to add: ").capitalize()
+    task_description = input("Tell me a description of the task you want to add: ").capitalize()
+    task_state = validate_input("Tell me if the task is complete or not (Complete/Pending): ", ["Complete", "Pending"])
     task_date = None
 
-    while task_state not in ["Completa","Pendiente"]:
-        task_state = input("Decime si la tarea esta completa o no (Completa/Pendiente): ").capitalize()
-        if task_state not in ["Completa","Pendiente"]:
-            print("Entrada no válida., Por favor, ingrese una de las opciones disponibles.")
-
     while not task_date:
-        fecha_limite = input("Decime cuando es la fecha limite de la tarea (DD/MM/AAAA): ")
+        deadline = input("Tell me the deadline of the task (DD/MM/YYYY): ")
         try:
-            task_date = datetime.strptime(fecha_limite, "%d/%m/%Y")
+            task_date = datetime.strptime(deadline, "%d/%m/%Y")
             task_date = task_date.strftime("%d/%m/%Y")
         except ValueError:
-            print("Fecha no válida. Por favor, usa el formato DD/MM/AAAA.")
+            print("Invalid date. Please, use the format DD/MM/YYYY.")
+            print("An example of a valid date would be: 05/09/2006")
 
-    tareas[task_name] = {
-        "descripcion": task_description,
-        "estado": task_state,
-        "fecha limite": task_date
+    tasks[task_name] = {
+        "description": task_description,
+        "state": task_state,
+        "deadline": task_date
     }
 
-    return tareas
+    return tasks
 
-def show_incomplete_task_in_archive(archivo_path):
-    with open(archivo_path,"r") as archivo:
-        tareas = json.load(archivo)
-    
-    for diccionario in tareas:
-        if tareas[diccionario].get("estado") == "Pendiente":
-            print(tareas[diccionario])
+# Shows the user the pending tasks to be done
+def show_incomplete_tasks_in_archive(file_path):
+    try:
+        with open(file_path, "r") as file:
+            tasks = json.load(file)
+    except FileNotFoundError:
+        print(f"Error: The file '{file_path}' is not found.")
+        return
+    except json.JSONDecodeError:
+        print(f"Error: The file '{file_path}' contains invalid JSON data.")
+        return
+    except Exception as e:
+        print(f"An unexpected error occurred while reading the file: {e}")
+        return
+    if tasks:
+        for task in tasks:
+            if tasks[task].get("state") == "Pending":
+                print(tasks[task])
+    else:
+        print("There are no pending tasks in the file")
     return
 
-def change_task_status(tareas):
-    task_name_to_change_status = input("Decime el nombre de la tarea a la que le queres cambiar el estado de pendiente a completada: ").capitalize()
+# Allows the user to change the status of a task to complete after completing it
+def change_task_status(tasks):
+    task_name_to_change_status = input("Tell me the name of the task you want to change from pending to complete: ").capitalize()
 
-    if task_name_to_change_status in tareas:
-        tareas[task_name_to_change_status]["estado"] = "Completa"
+    if task_name_to_change_status in tasks:
+        tasks[task_name_to_change_status]["state"] = "Complete"
+        print(f"The task named '{task_name_to_change_status}' has successfully changed from 'Pending' to 'Complete'")
+    else:
+        print(f"The task '{task_name_to_change_status}' does not exist")
+        user_choice = validate_input("Do you want to change the status of another task? (Y/N): ", ["Y", "N"])
+        if user_choice == "N":
+            print("Thank you for using my program")
+            exit()
+        elif user_choice == "S":
+            change_task_status(tasks)
     
-    return tareas
+    return tasks
 
+# Allows the user to delete any task as long as it exists in the JSON file
+def delete_task_from_archive(tasks):
+    task_to_delete = input("Tell me the name of the task you want to delete: ").capitalize()
 
-def delete_task_from_archive(tareas):
-    task_to_delete = input("Decime el nombre de la tarea que queres eliminar: ").capitalize()
+    if task_to_delete in tasks:
+        del tasks[task_to_delete]
+        print(f"The task named '{task_to_delete}', was successfully deleted")
+    else:
+        print(f"The task '{task_to_delete}' does not exist")
+        user_choice = validate_input("Do you want to delete another task? (Y/N): ", ["Y", "N"])
+        if user_choice == "N":
+            print("Thank you for using my program")
+            exit()
+        elif user_choice == "S":
+            delete_task_from_archive(tasks)
 
-    if task_to_delete in tareas:
-        del tareas[task_to_delete]
-    return tareas
+    return tasks
 
-
-
+# Simple introduction to the program
 def introduction():
     print("Hello User!\n")
     print("This is a simple Task Manager.")
     print("You can add a task, delete them, you can check their status and you can change their status.")
 
+# Interactive menu that allows the user to choose what to do with their tasks
 def main():
     introduction()
 
     print("\nWhat do you want to do?")
     print("""
-        1.Add a Task
-        2.Delete a Task
-        3.Check the incomplete tasks
-        4.Change the task status
-        5.Exit the program
+        1. Add a Task
+        2. Delete a Task
+        3. Check the incomplete tasks
+        4. Change the task status
+        5. Exit the program
             """)
     
-    user_election = None
-    while user_election not in ["1","2","3","4","5"]:
-        user_election = input("Elegí una opcion de las disponibles: ")
-        if user_election not in ["1","2","3","4","5"]:
-            print("Por favor, elegi una opcion valida")
-    
-    if user_election == "1":
-        agregar = add_task(tareas)
-        with open("tareas.json","w") as archivo:
-            json.dump(agregar,archivo,indent=4)
+    user_choice = validate_input("Choose one of the available options: ", ["1", "2", "3", "4", "5"])
 
-    elif user_election == "2":
-        delete_task = delete_task_from_archive(tareas)
-        with open("tareas.json","w") as archivo:
-            json.dump(delete_task,archivo,indent=4)
+    if user_choice == "1":
+        added = add_task(tasks)
+        try:
+            with open(tasks_file, "w") as file:
+                json.dump(added, file, indent=4)
+        except Exception as e:
+            print(f"An unexpected error occurred while writing to the file: {e}")
 
-    elif user_election == "3":
-        show_incomplete_task_in_archive(archivo_tareas)
+    elif user_choice == "2":
+        deleted = delete_task_from_archive(tasks)
+        try:
+            with open(tasks_file, "w") as file:
+                json.dump(deleted, file, indent=4)
+        except Exception as e:
+            print(f"An unexpected error occurred while writing to the file: {e}")
 
-    elif user_election == "4":
-        change_status = change_task_status(tareas)
-        with open("tareas.json","w") as archivo:
-            json.dump(change_status,archivo,indent=4)
+    elif user_choice == "3":
+        show_incomplete_tasks_in_archive(tasks_file)
 
-    elif user_election == "5":
+    elif user_choice == "4":
+        changed_status = change_task_status(tasks)
+        try:
+            with open(tasks_file, "w") as file:
+                json.dump(changed_status, file, indent=4)
+        except Exception as e:
+            print(f"An unexpected error occurred while writing to the file: {e}")
+
+    elif user_choice == "5":
         print("Thank you for using my Task Manager")
         exit()
 
